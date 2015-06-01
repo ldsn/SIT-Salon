@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>评分</title>
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.css">
+    <style>
+        h1 {
+            text-align: center;
+            font-size: 25px
+        }
+        .score {
+            width: 40px;
+        }
+        .count {
+            float: right;
+            font-size: 25px
+        }
+        #save {
+            float: right;
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>LDSN.内部SIT演练沙龙评分系统</h1>
+    <div class="container row">
+        <div class="col-xs-8 col-xs-offset-2">
+            <div class="form-group">
+                <select name="" id="selectGroup" class="form-control">
+                    <option value="L组">L组</option>
+                    <option value="D组">D组</option>
+                    <option value="S组">S组</option>
+                    <option value="N组">N组</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <select id="selectTitle" class="form-control">
+                </select>
+            </div>
+            <table class="table table-striped" id="list">
+                <thead>
+                    <tr>
+                        <th>工具</th>
+                        <th>创新点</th>
+                        <th>分数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                </tbody>
+            </table>
+            <button class="btn btn-default" id="save">保存成绩</button>
+            <p class="count">总分：<span id="countScore"></span></p>
+        </div>
+    </div>
+    <script src="http://apps.bdimg.com/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.5.4.js"></script>
+    <script>
+        AV.initialize("vqb3ebmc0f5c5p36ecg3whcb27x2dipgw7levjw0g5f5q47g", "s3fzavinlsmmb6j7jwnlpggntof1ja4ucmb8fd1vzgokfokk");
+        var currentData = AV.Object.extend("TestObject");
+        var SIT = AV.Object.extend("SIT");
+
+
+        var getAll = new AV.Query(currentData);
+        getAll.find().then(function (all) {
+            var html = '';
+            all.forEach(function (e) {
+                var selected = e.attributes.isCurrent ? 'selected' : '';
+                html += '<option value="' + e.attributes.title + '"' + selected + '>' + e.attributes.title + '</option>';
+            });
+            $('#selectTitle').html(html);
+            setView();
+        });
+
+
+        $('#selectGroup, #selectTitle').on('change', setView);
+        $(document).delegate('.score', 'change', renderAdd);
+        $('#save').on('click', saveScore);
+        function setView () {
+            $('#list').find('tbody').empty();
+            var group = $('#selectGroup').val().trim(),
+                title = $('#selectTitle').val().trim();
+            var getAnswer = new AV.Query(SIT);
+            getAnswer.equalTo('group', group);
+            getAnswer.equalTo('title', title);
+            var html = '';
+            getAnswer.find().then(function (arr) {
+                arr.forEach(function (s) {
+                    html += '<tr><td>' + s.attributes.tool + '</td><td>' + s.attributes.content + '</td><td><input type="text" value="1" class="score form-control"/></td></tr>';
+                })
+                $('#list').find('tbody').append($(html));
+                renderAdd();
+            })
+        }
+
+        var currentScore;
+        function renderAdd () {
+            var scoreDom = $('.score');
+            var sum = 0;
+            for (var i = 0; i < scoreDom.length; i ++) {
+                sum += parseInt(scoreDom.eq(i).val());
+            }
+            $('#countScore').text(sum);
+            currentScore = sum;
+        }
+
+        var checkCache = {
+            'L组': [],
+            'D组': [],
+            'S组': [],
+            'N组': [],
+        };
+
+        function saveScore () {
+            var group = $('#selectGroup').val().trim(),
+                title = $('#selectTitle').val().trim(),
+                score = currentScore;
+            var checkScore = new AV.Query(currentData);
+                checkScore.equalTo('s_group', group)
+                checkScore.equalTo('s_title', title)
+                if (checkCache[group][title] == true) {
+                    checkScore.first().then(function (sc) {
+                        sc.save({
+                            s_group: group,
+                            s_title: title,
+                            s_score: score
+                        }).then(function () {
+                            $('#save').text('保存成功');
+                        });
+                    },function (sc, err) {
+                        alert(arr.message);
+                    });
+                    return;
+                }
+                checkScore.count().then(function (count) {
+                    if (count === 0) {
+                        saveScoreModel = new currentData();
+                        saveScoreModel.save({
+                            s_group: group,
+                            s_title: title,
+                            s_score: score
+                        });
+                        checkCache[group][title] = true;
+                    } else {
+                        checkCache[group][title] = true;
+                        saveScore(score);
+                    }
+                });
+        }
+
+
+    </script>
+</body>
+</html>

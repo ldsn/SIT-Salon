@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>LDSN.内部SIT演练沙龙</title>
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.css">
+    <style>
+        .wrap {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        h1 {
+            font-size: 16px;
+            color: #777;
+            text-align: center;
+        }
+        p {
+            font-size: 12px;
+        }
+        #currentTitle,
+        #currentGroup {
+            color: #FF0000;
+        }
+        li:nth-of-type(odd) {
+          background-color: #f9f9f9;
+        }
+        #tips {
+            line-height: 34px
+        }
+        #submit {
+            margin-left: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container wrap">
+            <h1>LDSN.内部SIT演练沙龙</h1>
+            <div class="row">
+                <p class="col-xs-offset-1">当前题目:<span id="currentTitle">稍后~</span>；当前分组:<span id="currentGroup">稍后~</span></p>
+            </div>
+            <div class="form-group">
+                <select id="tool" class="form-control">
+                    <option value="加一维">加一维</option>
+                    <option value="分散">分散</option>
+                    <option value="繁殖">繁殖</option>
+                    <option value="减少">减少</option>
+                    <option value="合一">合一</option>
+                    <option value="调节环境">调节环境</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="content" />
+            </div>
+            <div class="form-group row">
+                <button type="button" class="btn btn-default col-xs-2" id="submit">提交</button>
+                <p id="tips" class="col-xs-4"></p>
+            </div>
+            <p>以下内容刷新后消失，但是数据库内存在，请不要担心</p>
+            <table id="list" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>工具</th>
+                        <th>创新点</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                </tbody>
+            </table>
+    </div>
+    <script src="http://apps.bdimg.com/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.5.4.js"></script>
+    <script>
+        
+    (function () {
+
+        var group = location.hash.substr(1,2);
+        if (!group) {
+            alert('无法获取分组，请联系管理员。');
+            return;
+        }
+        $('#currentGroup').text(group);
+
+        var title;
+
+        AV.initialize("vqb3ebmc0f5c5p36ecg3whcb27x2dipgw7levjw0g5f5q47g", "s3fzavinlsmmb6j7jwnlpggntof1ja4ucmb8fd1vzgokfokk");
+        var SIT = AV.Object.extend("SIT");
+        var TestObject = AV.Object.extend("TestObject");
+
+        function getCurrentTitle() {
+            var curTitle = new AV.Query(TestObject);
+            curTitle.equalTo('isCurrent', true);
+            curTitle.first().then(function (cur) {
+                title = cur.attributes.title;
+                $('#currentTitle').text(title);
+            });
+        }
+        getCurrentTitle();
+        setInterval(getCurrentTitle, 10000);
+
+        $('#submit').on('click', function () {
+            var tool = $('#tool').val().trim(),
+                content = $('#content').val().trim();
+                if (!content) {
+                    setTip('<span style="color:red">请填写内容！</span>');
+                    return;
+                }
+            submitAnswer(tool,content);
+        });
+        $('#content').on('keyup', function (e) {
+            if (e.keyCode === 13) {
+                $('#submit').trigger('click');
+            }
+        })
+
+
+        function submitAnswer (tool, content) {
+            setTip('提交中...');
+            var subAnswer = new SIT();
+            subAnswer.save({
+                tool: tool,
+                content: content,
+                group: group,
+                title: title
+            }).then(function (obj) {
+                setTip('提交成功!');
+                var html = '<tr><td>' + obj.attributes.tool + ' </td><td>' + obj.attributes.content + '</td></tr>';
+                $('#list').append($(html));
+                $('#content').val();
+            }, function (obj, err) {
+                alert(err.message + '请联系沙龙主持人！');
+            })
+        }
+
+        function setTip (content) {
+            $('#tips').html(content);
+        }
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>分数统计</title>
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.css">
+    <style>
+
+    h1 {
+        text-align: center;
+        font-size: 25px
+    }
+    </style>
+</head>
+<body>
+    <h1>LDSN.内部SIT演练沙龙得分</h1>
+    <div class="container row">
+        <div class="col-xs-8 col-xs-offset-2">
+            <table class="table table-striped" id="list">
+                <thead>
+                    <tr>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="http://apps.bdimg.com/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.5.4.js"></script>
+    <script>
+
+        var group = ['L组','D组','S组','N组'];
+
+
+        AV.initialize("vqb3ebmc0f5c5p36ecg3whcb27x2dipgw7levjw0g5f5q47g", "s3fzavinlsmmb6j7jwnlpggntof1ja4ucmb8fd1vzgokfokk");
+        var currentData = AV.Object.extend("TestObject");
+        var SIT = AV.Object.extend("SIT");
+
+        var getAll = new AV.Query(currentData);
+        getAll.exists('title');
+        getAll.ascending('title');
+        getAll.find().then(function (all) {
+            var html = '<th>团队</th>';
+            all.forEach(function (a) {
+                html += '<th>' + a.attributes.title + '</th>';
+            });
+            html += '<th>总分</th>';
+            $('#list thead tr').html(html);
+
+            var getScore = new AV.Query(currentData);
+            getScore.exists('s_group');
+            getScore.ascending('s_title');
+            getScore.find().then(function (arr) {
+                var score = [];
+                arr.forEach(function (s) {
+                    score.push(s.attributes);
+                })
+                group.forEach(function (g) {
+                    var cGroup = score.filter(function (x) {
+                        return x.s_group == g;
+                    });
+
+                    var html = '<tr><td>' + g + '</td>';
+                    var count = 0;
+                    cGroup.forEach(function (l) {
+                        html += '<td>' + l.s_score + '</td>';
+                        count += parseInt(l.s_score);
+                    });
+                    html += '<td>' + count + '</td></tr>';
+                    $('#list tbody').append($(html));
+                })
+
+            });
+        });
+
+
+                // group.forEach(function (g) {
+                //     var gHtml = '<tr>';
+                //     gHtml += '<td>' + g + '</td>';
+                //     var getScore = new AV.Query(currentData);
+                //     getScore.equalTo('s_group', g);
+                //     getScore.equalTo('s_title', a.attributes.title);
+                //     (function () {
+                //         getScore.first().then(function(sc) {
+                //             gHtml += '<td>' + sc.attributes.s_score + '</td></tr>';
+                //             console.log(gHtml);
+                //         });
+                //     })(gHtml);
+                // });
+                // // console.log(gHtml);
+    </script>
+</body>
+</html>

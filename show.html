@@ -28,10 +28,6 @@
         <div class="col-xs-8 col-xs-offset-2">
             <div class="form-group">
                 <select name="" id="selectGroup" class="form-control">
-                    <option value="L组">L组</option>
-                    <option value="D组">D组</option>
-                    <option value="S组">S组</option>
-                    <option value="N组">N组</option>
                 </select>
             </div>
             <div class="form-group">
@@ -57,9 +53,14 @@
     <script src="http://apps.bdimg.com/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.5.4.js"></script>
     <script>
-        AV.initialize("vqb3ebmc0f5c5p36ecg3whcb27x2dipgw7levjw0g5f5q47g", "s3fzavinlsmmb6j7jwnlpggntof1ja4ucmb8fd1vzgokfokk");
-        var currentData = AV.Object.extend("TestObject");
+    (function () {
+        AV.initialize("89jnijh7ho5qm7a4bfgolekx673oof4se568f5y3g9ctudlr", "08rpae5q24x7gll6cwyh1jsbqpam02qx8nn06rjg23pdm76n");
+        var currentData = AV.Object.extend("Question");
+        var Score = AV.Object.extend("Score");
         var SIT = AV.Object.extend("SIT");
+        var Group = AV.Object.extend("Group");
+        
+        var checkCache = {};
 
 
         var getAll = new AV.Query(currentData);
@@ -70,8 +71,18 @@
                 html += '<option value="' + e.attributes.title + '"' + selected + '>' + e.attributes.title + '</option>';
             });
             $('#selectTitle').html(html);
+            var getGroup = new AV.Query(Group);
+            return getGroup.find()
+        }).then(function (g) {
+            var html = '';
+            g.forEach(function (r) {
+                checkCache[r.attributes.group] = [];
+                html += '<option value="' + r.attributes.group + '">' + r.attributes.group + '</option>';
+            });
+            $('#selectGroup').html(html);
             setView();
         });
+
 
 
         $('#selectGroup, #selectTitle').on('change', setView);
@@ -96,6 +107,7 @@
 
         var currentScore;
         function renderAdd () {
+            $('#saveScore').val('保存成绩');
             var scoreDom = $('.score');
             var sum = 0;
             for (var i = 0; i < scoreDom.length; i ++) {
@@ -105,26 +117,21 @@
             currentScore = sum;
         }
 
-        var checkCache = {
-            'L组': [],
-            'D组': [],
-            'S组': [],
-            'N组': [],
-        };
+
 
         function saveScore () {
             var group = $('#selectGroup').val().trim(),
                 title = $('#selectTitle').val().trim(),
                 score = currentScore;
-            var checkScore = new AV.Query(currentData);
-                checkScore.equalTo('s_group', group)
-                checkScore.equalTo('s_title', title)
+            var checkScore = new AV.Query(Score);
+                checkScore.equalTo('group', group)
+                checkScore.equalTo('title', title)
                 if (checkCache[group][title] == true) {
                     checkScore.first().then(function (sc) {
                         sc.save({
-                            s_group: group,
-                            s_title: title,
-                            s_score: score
+                            group: group,
+                            title: title,
+                            score: score
                         }).then(function () {
                             $('#save').text('保存成功');
                         });
@@ -135,11 +142,11 @@
                 }
                 checkScore.count().then(function (count) {
                     if (count === 0) {
-                        saveScoreModel = new currentData();
+                        saveScoreModel = new Score();
                         saveScoreModel.save({
-                            s_group: group,
-                            s_title: title,
-                            s_score: score
+                            group: group,
+                            title: title,
+                            score: score
                         });
                         checkCache[group][title] = true;
                     } else {
@@ -148,7 +155,7 @@
                     }
                 });
         }
-
+    })();
 
     </script>
 </body>

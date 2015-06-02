@@ -30,18 +30,24 @@
     <script src="http://apps.bdimg.com/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.5.4.js"></script>
     <script>
+    (function () {
 
-        var group = ['L组','D组','S组','N组'];
-
-
-        AV.initialize("vqb3ebmc0f5c5p36ecg3whcb27x2dipgw7levjw0g5f5q47g", "s3fzavinlsmmb6j7jwnlpggntof1ja4ucmb8fd1vzgokfokk");
-        var currentData = AV.Object.extend("TestObject");
+        AV.initialize("89jnijh7ho5qm7a4bfgolekx673oof4se568f5y3g9ctudlr", "08rpae5q24x7gll6cwyh1jsbqpam02qx8nn06rjg23pdm76n");
+        var currentData = AV.Object.extend("Question");
+        var Score = AV.Object.extend("Score");
         var SIT = AV.Object.extend("SIT");
-
-        var getAll = new AV.Query(currentData);
-        getAll.exists('title');
-        getAll.ascending('title');
-        getAll.find().then(function (all) {
+        var Group = AV.Object.extend("Group");
+      
+        var group = [];
+        var getGroup = new AV.Query(Group);
+        getGroup.find().then(function(g) {
+            g.forEach(function (x) {
+                group.push(x.attributes.group);
+            })
+            var getAll = new AV.Query(currentData);
+            getAll.ascending('title');
+            return getAll.find();
+        }).then(function (all) {
             var html = '<th>团队</th>';
             all.forEach(function (a) {
                 html += '<th>' + a.attributes.title + '</th>';
@@ -49,47 +55,30 @@
             html += '<th>总分</th>';
             $('#list thead tr').html(html);
 
-            var getScore = new AV.Query(currentData);
-            getScore.exists('s_group');
-            getScore.ascending('s_title');
-            getScore.find().then(function (arr) {
-                var score = [];
-                arr.forEach(function (s) {
-                    score.push(s.attributes);
-                })
-                group.forEach(function (g) {
-                    var cGroup = score.filter(function (x) {
-                        return x.s_group == g;
-                    });
+            var getScore = new AV.Query(Score);
+            getScore.ascending('title');
+            return getScore.find()
+        }).then(function (arr) {
+            var score = [];
+            arr.forEach(function (s) {
+                score.push(s.attributes);
+            })
+            group.forEach(function (g) {
+                var cGroup = score.filter(function (x) {
+                    return x.group == g;
+                });
 
-                    var html = '<tr><td>' + g + '</td>';
-                    var count = 0;
-                    cGroup.forEach(function (l) {
-                        html += '<td>' + l.s_score + '</td>';
-                        count += parseInt(l.s_score);
-                    });
-                    html += '<td>' + count + '</td></tr>';
-                    $('#list tbody').append($(html));
-                })
-
-            });
+                var html = '<tr><td>' + g + '</td>';
+                var count = 0;
+                cGroup.forEach(function (l) {
+                    html += '<td>' + l.score + '</td>';
+                    count += parseInt(l.score);
+                });
+                html += '<td>' + count + '</td></tr>';
+                $('#list tbody').append($(html));
+            })
         });
-
-
-                // group.forEach(function (g) {
-                //     var gHtml = '<tr>';
-                //     gHtml += '<td>' + g + '</td>';
-                //     var getScore = new AV.Query(currentData);
-                //     getScore.equalTo('s_group', g);
-                //     getScore.equalTo('s_title', a.attributes.title);
-                //     (function () {
-                //         getScore.first().then(function(sc) {
-                //             gHtml += '<td>' + sc.attributes.s_score + '</td></tr>';
-                //             console.log(gHtml);
-                //         });
-                //     })(gHtml);
-                // });
-                // // console.log(gHtml);
+    })();
     </script>
 </body>
 </html>

@@ -84,12 +84,12 @@
 
         var title;
 
-        AV.initialize("vqb3ebmc0f5c5p36ecg3whcb27x2dipgw7levjw0g5f5q47g", "s3fzavinlsmmb6j7jwnlpggntof1ja4ucmb8fd1vzgokfokk");
+        AV.initialize("89jnijh7ho5qm7a4bfgolekx673oof4se568f5y3g9ctudlr", "08rpae5q24x7gll6cwyh1jsbqpam02qx8nn06rjg23pdm76n");
         var SIT = AV.Object.extend("SIT");
-        var TestObject = AV.Object.extend("TestObject");
+        var Question = AV.Object.extend("Question");
 
         function getCurrentTitle() {
-            var curTitle = new AV.Query(TestObject);
+            var curTitle = new AV.Query(Question);
             curTitle.equalTo('isCurrent', true);
             curTitle.first().then(function (cur) {
                 title = cur.attributes.title;
